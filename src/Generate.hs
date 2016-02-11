@@ -113,10 +113,23 @@ op2 2 = div
 op2 3 = (-)
 op2 4 = (+)
 
+-- | Вычислить значение выражения
+eval :: Expr -> Int
+eval (Num n) = n
+eval (Neg e') = - (eval e')
+eval e = (eval e') `op` (eval e'')
+    where (op, e', e'') = case e of
+                            Mul e' e''   -> ((*), e', e'') 
+                            Div e' e''   -> (div, e', e'') 
+                            Plus e' e''  -> ((+), e', e'') 
+                            Minus e' e'' -> ((-), e', e'') 
+
+
 main :: IO ()
 main = do
   s <- sample' $ gen0 (-100) 100 4
-  mapM_ print $ map ss s
+  mapM_ print $ zipWith (,) (map ss s) (map eval s)
+
 
 ss :: Expr -> String
 ss (Num i) = show i
