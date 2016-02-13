@@ -2,7 +2,6 @@
 
 import Test.QuickCheck
 import Test.QuickCheck.Instances()
-import Data.List
 import Control.Applicative
 
 -- | Арифмитическое выражение
@@ -52,8 +51,6 @@ gen2 ::
     -> Int -- ^ Числовой код бинарной операции 
     -> Gen Expr
 gen2 mn mx n cnt opi = do
-    let op = op2 opi
-
     -- Определяем какие значения должны принять левая и правая часть выражения
     (n', n'') <- ((,) <$> choose (mn, mx) <*> choose (mn, mx)) `suchThat` valide2 mn mx opi n
 
@@ -91,8 +88,9 @@ gen1 ::
     -> Int -- ^ Максимальное кол-во чисел в выражении
     -> Int -- ^ Числовой код унарной операции 
     -> Gen Expr
-gen1 mn mx n cnt 5 = return $ Num n
+gen1 _  _  n _   5 = return $ Num n
 gen1 mn mx n cnt 6 = Neg <$> gen (-mx) (-mn) (-n) cnt
+gen1 _  _  _ _   _ = error "error in algoritm"
 
 -- | Сгенерировать код операции, в которой может быть задействовано не более указанного количества чисел
 genop :: Int -> Gen Int
@@ -105,6 +103,7 @@ expr2 1 = Mul
 expr2 2 = Div
 expr2 3 = Minus
 expr2 4 = Plus
+expr2 _ = error "error in algoritm"
 
 -- | Таблица численных кодов бинарных операций
 op2 :: Int -> (Int -> Int -> Int)
@@ -112,6 +111,7 @@ op2 1 = (*)
 op2 2 = div
 op2 3 = (-)
 op2 4 = (+)
+op2 _ = error "error in algoritm"
 
 -- | Вычислить значение выражения
 eval :: Expr -> Int
@@ -119,10 +119,11 @@ eval (Num n) = n
 eval (Neg e') = - (eval e')
 eval e = (eval e') `op` (eval e'')
     where (op, e', e'') = case e of
-                            Mul e' e''   -> ((*), e', e'') 
-                            Div e' e''   -> (div, e', e'') 
-                            Plus e' e''  -> ((+), e', e'') 
-                            Minus e' e'' -> ((-), e', e'') 
+                            Mul u' u''   -> ((*), u', u'') 
+                            Div u' u''   -> (div, u', u'') 
+                            Plus u' u''  -> ((+), u', u'') 
+                            Minus u' u'' -> ((-), u', u'') 
+                            _            -> error "error in algoritm"
 
 -- | Избавляемся от отрицательных чисел: заменяем на минус положительного числа
 eliminateNeg :: Expr -> Expr
@@ -137,6 +138,7 @@ eliminateNeg (Plus e' e'')  = Plus (eliminateNeg e') (eliminateNeg e'')
 eliminateNeg (Minus e' e'') = Minus (eliminateNeg e') (eliminateNeg e'')
 
 -- | Приоритет операций
+prior :: Expr -> Int
 prior (Mul   _ _) = 3
 prior (Div   _ _) = 3
 prior (Minus _ _) = 2
