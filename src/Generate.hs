@@ -174,6 +174,7 @@ ss2' First       (Neg e@(Num _)) = "-" ++ ss2' NotEnclosed e
 ss2' Enclosed    (Neg e@(Num _)) = "-" ++ ss2' NotEnclosed e
 ss2' NotEnclosed (Neg e@(Num _)) = "(-" ++ ss2' NotEnclosed e ++ ")"
 
+ss2' NotEnclosed (Neg e) = "(-(" ++ ss2' Enclosed e ++ "))"
 ss2' _ (Neg e) = "-(" ++ ss2' Enclosed e ++ ")"
 
 
