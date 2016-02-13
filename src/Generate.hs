@@ -124,7 +124,7 @@ eval e = (eval e') `op` (eval e'')
                             Plus e' e''  -> ((+), e', e'') 
                             Minus e' e'' -> ((-), e', e'') 
 
--- | Избавляемся от унарного минуса
+-- | Избавляемся от отрицательных чисел: заменяем на минус положительного числа
 eliminateNeg :: Expr -> Expr
 eliminateNeg e@(Num n) 
     | n == 0    = Num 0
@@ -144,30 +144,17 @@ prior (Plus  _ _) = 2
 prior (Num   _  ) = 4
 prior (Neg _)     = 4
 
+-- | режим обработки выражения
+data Enclosed = 
+      First       -- ^ выражение не является левым операндом никакого другого выражения
+    | Enclosed    -- ^ выражение заключено в скобки (при обработке родительского выражения)
+    | NotEnclosed -- ^ выражение не заключено в скобки (при обработке родительского выражения)
 
-
-main :: IO ()
-main = do
-  s <- sample' $ gen0 (-100) 100 4
-  let s2 = map eliminateNeg s
-  mapM_ print $ zipWith4 (,,,) (map ss s) (map eval s) (map ss2 s2) (map eval s2)
-
-
-ss :: Expr -> String
-ss (Num i) = show i
-ss (Neg e) = "-(" ++ ss e ++ ")"
-ss (Mul e1 e2) = "(" ++ ss e1 ++ ") * (" ++ ss e2 ++ ")"
-ss (Div e1 e2) = "(" ++ ss e1 ++ ") / (" ++ ss e2 ++ ")"
-ss (Minus e1 e2) = "(" ++ ss e1 ++ ") - (" ++ ss e2 ++ ")"
-ss (Plus e1 e2) = "(" ++ ss e1 ++ ") + (" ++ ss e2 ++ ")"
-
-data Enclosed = First | Enclosed | NotEnclosed
-
-
--- | 
+-- | Отобразить выражение, миимизировав количество скобок 
 ss2 :: Expr -> String
 ss2 e = ss2' First e
 
+-- | Отобразить выражение, миимизировав количество скобок, с учетом режима обработки выражения
 ss2' :: Enclosed -> Expr -> String
 ss2' _ (Num i) = show i
 
@@ -195,13 +182,11 @@ ss2' encl e@(Mul e' e'') = l ++ "*" ++ r
 ss2' First e@(Div e' e'') = l ++ "/" ++ r
     where l = if (prior e <= prior e') then ss2' First e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
---               Div _ _ -> ss2' NotEnclosed e''
                Num n   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 ss2' encl e@(Div e' e'') = l ++ "/" ++ r
     where l = if (prior e <= prior e') then ss2' encl e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
---               Div _ _ -> ss2' NotEnclosed e''
                Num n   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 
@@ -221,12 +206,27 @@ ss2' encl e@(Plus e' e'') = l ++ "+" ++ r
 ss2' First e@(Minus e' e'') = l ++ "-" ++ r
     where l = if (prior e <= prior e') then ss2' First e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
---               Minus _ _ -> ss2' NotEnclosed e''
                Num n   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 ss2' encl e@(Minus e' e'') = l ++ "-" ++ r
     where l = if (prior e <= prior e') then ss2' encl e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
---              Minus _ _ -> ss2' NotEnclosed e''
                Num n   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
+
+main :: IO ()
+main = do
+  s <- sample' $ gen0 (-100) 100 4
+  let s2 = map eliminateNeg s
+  mapM_ print $ map (\e -> ss2 e ++ " = " ++ (show $ eval e)) s2
+--  mapM_ print $ zipWith4 (,,,) (map ss s) (map eval s) (map ss2 s2) (map eval s2)
+
+
+ss :: Expr -> String
+ss (Num i) = show i
+ss (Neg e) = "-(" ++ ss e ++ ")"
+ss (Mul e1 e2) = "(" ++ ss e1 ++ ") * (" ++ ss e2 ++ ")"
+ss (Div e1 e2) = "(" ++ ss e1 ++ ") / (" ++ ss e2 ++ ")"
+ss (Minus e1 e2) = "(" ++ ss e1 ++ ") - (" ++ ss e2 ++ ")"
+ss (Plus e1 e2) = "(" ++ ss e1 ++ ") + (" ++ ss e2 ++ ")"
+
