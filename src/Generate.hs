@@ -127,7 +127,8 @@ eval e = (eval e') `op` (eval e'')
 -- | Избавляемся от унарного минуса
 eliminateNeg :: Expr -> Expr
 eliminateNeg e@(Num n) 
-    | n <= 0    = Neg (Num (-n))
+    | n == 0    = Num 0
+    | n <  0    = Neg (Num (-n))
     | otherwise = e
 eliminateNeg (Neg e)        = Neg (eliminateNeg e)
 eliminateNeg (Mul e' e'')   = Mul (eliminateNeg e') (eliminateNeg e'')
