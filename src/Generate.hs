@@ -124,11 +124,32 @@ eval e = (eval e') `op` (eval e'')
                             Plus e' e''  -> ((+), e', e'') 
                             Minus e' e'' -> ((-), e', e'') 
 
+-- | Избавляемся от унарного минуса
+eliminateNeg :: Expr -> Expr
+eliminateNeg e@(Num n) 
+    | n <= 0    = Neg (Num (-n))
+    | otherwise = e
+eliminateNeg (Neg e)        = Neg (eliminateNeg e)
+eliminateNeg (Mul e' e'')   = Mul (eliminateNeg e') (eliminateNeg e'')
+eliminateNeg (Div e' e'')   = Div (eliminateNeg e') (eliminateNeg e'')
+eliminateNeg (Plus e' e'')  = Plus (eliminateNeg e') (eliminateNeg e'')
+eliminateNeg (Minus e' e'') = Minus (eliminateNeg e') (eliminateNeg e'')
+
+-- | Приоритет операций
+prior (Mul   _ _) = 3
+prior (Div   _ _) = 3
+prior (Minus _ _) = 2
+prior (Plus  _ _) = 2
+prior (Num   _  ) = 4
+prior (Neg _)     = 4
+
+
 
 main :: IO ()
 main = do
   s <- sample' $ gen0 (-100) 100 4
-  mapM_ print $ zipWith (,) (map ss s) (map eval s)
+  let s2 = map eliminateNeg s
+  mapM_ print $ zipWith4 (,,,) (map ss s) (map eval s) (map ss2 s2) (map eval s2)
 
 
 ss :: Expr -> String
@@ -139,3 +160,71 @@ ss (Div e1 e2) = "(" ++ ss e1 ++ ") / (" ++ ss e2 ++ ")"
 ss (Minus e1 e2) = "(" ++ ss e1 ++ ") - (" ++ ss e2 ++ ")"
 ss (Plus e1 e2) = "(" ++ ss e1 ++ ") + (" ++ ss e2 ++ ")"
 
+data Enclosed = First | Enclosed | NotEnclosed
+
+
+-- | 
+ss2 :: Expr -> String
+ss2 e = ss2' First e
+
+ss2' :: Enclosed -> Expr -> String
+ss2' _ (Num i) = show i
+
+ss2' First       (Neg e@(Num _)) = "-" ++ ss2' NotEnclosed e
+ss2' Enclosed    (Neg e@(Num _)) = "-" ++ ss2' NotEnclosed e
+ss2' NotEnclosed (Neg e@(Num _)) = "(-" ++ ss2' NotEnclosed e ++ ")"
+
+ss2' _ (Neg e) = "-(" ++ ss2' Enclosed e ++ ")"
+
+
+ss2' First e@(Mul e' e'') = l ++ "*" ++ r
+    where l = if (prior e <= prior e') then ss2' First e' else "(" ++ ss2' Enclosed e' ++ ")"
+          r = case e'' of
+               Mul _ _ -> ss2' NotEnclosed e''
+               Num n   -> ss2' NotEnclosed e''
+               otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
+ss2' encl e@(Mul e' e'') = l ++ "*" ++ r
+    where l = if (prior e <= prior e') then ss2' encl e' else "(" ++ ss2' Enclosed e' ++ ")"
+          r = case e'' of
+               Mul _ _ -> ss2' NotEnclosed e''
+               Num n   -> ss2' NotEnclosed e''
+               otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
+
+ss2' First e@(Div e' e'') = l ++ "/" ++ r
+    where l = if (prior e <= prior e') then ss2' First e' else "(" ++ ss2' Enclosed e' ++ ")"
+          r = case e'' of
+--               Div _ _ -> ss2' NotEnclosed e''
+               Num n   -> ss2' NotEnclosed e''
+               otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
+ss2' encl e@(Div e' e'') = l ++ "/" ++ r
+    where l = if (prior e <= prior e') then ss2' encl e' else "(" ++ ss2' Enclosed e' ++ ")"
+          r = case e'' of
+--               Div _ _ -> ss2' NotEnclosed e''
+               Num n   -> ss2' NotEnclosed e''
+               otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
+
+ss2' First e@(Plus e' e'') = l ++ "+" ++ r
+    where l = if (prior e <= prior e') then ss2' First e' else "(" ++ ss2' Enclosed e' ++ ")"
+          r = case e'' of
+               Plus _ _ -> ss2' NotEnclosed e''
+               Num n   -> ss2' NotEnclosed e''
+               otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
+ss2' encl e@(Plus e' e'') = l ++ "+" ++ r
+    where l = if (prior e <= prior e') then ss2' encl e' else "(" ++ ss2' Enclosed e' ++ ")"
+          r = case e'' of
+               Plus _ _ -> ss2' NotEnclosed e''
+               Num n   -> ss2' NotEnclosed e''
+               otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
+
+ss2' First e@(Minus e' e'') = l ++ "-" ++ r
+    where l = if (prior e <= prior e') then ss2' First e' else "(" ++ ss2' Enclosed e' ++ ")"
+          r = case e'' of
+--               Minus _ _ -> ss2' NotEnclosed e''
+               Num n   -> ss2' NotEnclosed e''
+               otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
+ss2' encl e@(Minus e' e'') = l ++ "-" ++ r
+    where l = if (prior e <= prior e') then ss2' encl e' else "(" ++ ss2' Enclosed e' ++ ")"
+          r = case e'' of
+--              Minus _ _ -> ss2' NotEnclosed e''
+               Num n   -> ss2' NotEnclosed e''
+               otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
