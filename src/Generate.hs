@@ -170,48 +170,48 @@ ss2' First e@(Mul e' e'') = l ++ "*" ++ r
     where l = if (prior e <= prior e') then ss2' First e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
                Mul _ _ -> ss2' NotEnclosed e''
-               Num n   -> ss2' NotEnclosed e''
+               Num _   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 ss2' encl e@(Mul e' e'') = l ++ "*" ++ r
     where l = if (prior e <= prior e') then ss2' encl e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
                Mul _ _ -> ss2' NotEnclosed e''
-               Num n   -> ss2' NotEnclosed e''
+               Num _   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 
 ss2' First e@(Div e' e'') = l ++ "/" ++ r
     where l = if (prior e <= prior e') then ss2' First e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
-               Num n   -> ss2' NotEnclosed e''
+               Num _   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 ss2' encl e@(Div e' e'') = l ++ "/" ++ r
     where l = if (prior e <= prior e') then ss2' encl e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
-               Num n   -> ss2' NotEnclosed e''
+               Num _   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 
 ss2' First e@(Plus e' e'') = l ++ "+" ++ r
     where l = if (prior e <= prior e') then ss2' First e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
                Plus _ _ -> ss2' NotEnclosed e''
-               Num n   -> ss2' NotEnclosed e''
+               Num _   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 ss2' encl e@(Plus e' e'') = l ++ "+" ++ r
     where l = if (prior e <= prior e') then ss2' encl e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
                Plus _ _ -> ss2' NotEnclosed e''
-               Num n   -> ss2' NotEnclosed e''
+               Num _   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 
 ss2' First e@(Minus e' e'') = l ++ "-" ++ r
     where l = if (prior e <= prior e') then ss2' First e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
-               Num n   -> ss2' NotEnclosed e''
+               Num _   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 ss2' encl e@(Minus e' e'') = l ++ "-" ++ r
     where l = if (prior e <= prior e') then ss2' encl e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
-               Num n   -> ss2' NotEnclosed e''
+               Num _   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 
 main :: IO ()
@@ -221,7 +221,7 @@ main = do
   mapM_ print $ map (\e -> ss2 e ++ " = " ++ (show $ eval e)) s2
 --  mapM_ print $ zipWith4 (,,,) (map ss s) (map eval s) (map ss2 s2) (map eval s2)
 
-
+{--
 ss :: Expr -> String
 ss (Num i) = show i
 ss (Neg e) = "-(" ++ ss e ++ ")"
@@ -229,4 +229,5 @@ ss (Mul e1 e2) = "(" ++ ss e1 ++ ") * (" ++ ss e2 ++ ")"
 ss (Div e1 e2) = "(" ++ ss e1 ++ ") / (" ++ ss e2 ++ ")"
 ss (Minus e1 e2) = "(" ++ ss e1 ++ ") - (" ++ ss e2 ++ ")"
 ss (Plus e1 e2) = "(" ++ ss e1 ++ ") + (" ++ ss e2 ++ ")"
+--}
 
