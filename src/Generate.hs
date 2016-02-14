@@ -4,6 +4,8 @@ import Test.QuickCheck
 import Test.QuickCheck.Instances()
 import Control.Applicative
 
+import qualified Data.Configurator as C
+
 -- | Арифмитическое выражение
 data Expr = 
       Mul   Expr Expr -- ^ Умножение
@@ -218,7 +220,11 @@ ss2' encl e@(Minus e' e'') = l ++ "-" ++ r
 
 main :: IO ()
 main = do
-  s <- sample' $ gen0 (-100) 100 4
+  conf <- C.load [C.Required "genexp.conf"]
+  mn  <- maybe (-100) id <$> C.lookup conf "min"
+  mx  <- maybe (100)  id <$> C.lookup conf "max"
+  cnt <- maybe 4      id <$> C.lookup conf "cnt"
+  s <- sample' $ gen0 mn mx cnt
   let s2 = map eliminateNeg s
   mapM_ print $ map (\e -> ss2 e ++ " = " ++ (show $ eval e)) s2
 --  mapM_ print $ zipWith4 (,,,) (map ss s) (map eval s) (map ss2 s2) (map eval s2)
