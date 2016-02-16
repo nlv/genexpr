@@ -97,7 +97,8 @@ gen1 _  _  _ _   _ = error "error in algoritm"
 -- | Сгенерировать код операции, в которой может быть задействовано не более указанного количества чисел
 genop :: Int -> Gen Int
 genop 1 = frequency [(10, return 5), (1, return 6)] -- Понижаем чистату для унарного минуса, чтобы не было много цепочек: -(-(-(-10)))
-genop _ = choose (1, 6)
+genop _ = frequency $ (1, return 6) : normal
+  where normal = zip [10..] (map return [1 .. 5]) 
 
 -- | Таблица численных кодов бинарных операций (Expr)
 expr2 :: Int -> (Expr -> Expr -> Expr)
