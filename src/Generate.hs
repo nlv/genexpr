@@ -170,12 +170,6 @@ ss2' NotEnclosed (Neg e) = "(-(" ++ ss2' Enclosed e ++ "))"
 ss2' _ (Neg e) = "-(" ++ ss2' Enclosed e ++ ")"
 
 
-ss2' First e@(Mul e' e'') = l ++ "*" ++ r
-    where l = if (prior e <= prior e') then ss2' First e' else "(" ++ ss2' Enclosed e' ++ ")"
-          r = case e'' of
-               Mul _ _ -> ss2' NotEnclosed e''
-               Num _   -> ss2' NotEnclosed e''
-               otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 ss2' encl e@(Mul e' e'') = l ++ "*" ++ r
     where l = if (prior e <= prior e') then ss2' encl e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
@@ -183,23 +177,12 @@ ss2' encl e@(Mul e' e'') = l ++ "*" ++ r
                Num _   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 
-ss2' First e@(Div e' e'') = l ++ "/" ++ r
-    where l = if (prior e <= prior e') then ss2' First e' else "(" ++ ss2' Enclosed e' ++ ")"
-          r = case e'' of
-               Num _   -> ss2' NotEnclosed e''
-               otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 ss2' encl e@(Div e' e'') = l ++ "/" ++ r
     where l = if (prior e <= prior e') then ss2' encl e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
                Num _   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 
-ss2' First e@(Plus e' e'') = l ++ "+" ++ r
-    where l = if (prior e <= prior e') then ss2' First e' else "(" ++ ss2' Enclosed e' ++ ")"
-          r = case e'' of
-               Plus _ _ -> ss2' NotEnclosed e''
-               Num _   -> ss2' NotEnclosed e''
-               otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 ss2' encl e@(Plus e' e'') = l ++ "+" ++ r
     where l = if (prior e <= prior e') then ss2' encl e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
@@ -207,11 +190,6 @@ ss2' encl e@(Plus e' e'') = l ++ "+" ++ r
                Num _   -> ss2' NotEnclosed e''
                otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 
-ss2' First e@(Minus e' e'') = l ++ "-" ++ r
-    where l = if (prior e <= prior e') then ss2' First e' else "(" ++ ss2' Enclosed e' ++ ")"
-          r = case e'' of
-               Num _   -> ss2' NotEnclosed e''
-               otherwise -> "(" ++ ss2' Enclosed e'' ++ ")"
 ss2' encl e@(Minus e' e'') = l ++ "-" ++ r
     where l = if (prior e <= prior e') then ss2' encl e' else "(" ++ ss2' Enclosed e' ++ ")"
           r = case e'' of
